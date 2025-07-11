@@ -1,1 +1,2 @@
-# AFIT-CSCE489-PROJ1
+# Project1 by McElroy
+
