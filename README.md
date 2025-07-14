@@ -1,6 +1,11 @@
 # Project1 by McElroy
 
-Welcome to my shell, `make` and `./myshell` to get started.
+Welcome to my shell.  Run the following to get started:
+``` Shell
+make clean
+make
+./myshell
+```
 
-> [!note]
+> [!note] FYI
 > the empty `testing_folder` will be where the shell runs, and can add/modify files.
