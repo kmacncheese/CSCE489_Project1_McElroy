@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-ggdb -Wall -Wextra -O0
-DEPS = shellfuncts.h
-OBJ = myshell.o shellfuncts.o 
+DEPS = shellfuncts.h 
+OBJ = myshell.o shellfuncts.o
 
 %.o: %.c $(DEPS)
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -12,4 +12,4 @@ myshell: $(OBJ)
 .PHONY: clean
 
 clean:
-	rm -f *.o *~ myshell 
+	rm -rf *.o *~ myshell 
