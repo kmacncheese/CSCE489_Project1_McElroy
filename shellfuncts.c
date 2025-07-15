@@ -4,7 +4,7 @@
  *************************************************************************************/
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <stdio.h>
+#include <stdio.h> 
 #include <stdlib.h>
 #include <unistd.h>
 #include <strings.h>
@@ -83,7 +83,7 @@ char** parse_command(const char* command) {
         if (!words) return NULL;
 
         //keep tokenizing untill no more words exist.
-        while (token && i < expected_wc) {
+        while (token) {
 		if (token[0] == '"') {
 			// start of a quoted string
 			size_t len = strlen(token);
@@ -120,8 +120,8 @@ char** parse_command(const char* command) {
 			token = strtok(NULL, " ");
 		}
         }
-	// ensure final param count is not too little either.
-	if (i < expected_wc) {
+	//ensure param count is the same
+	if (i != expected_wc) {
 		free(command_copy);
 		return NULL;
 	}
@@ -207,8 +207,16 @@ void exe_create(const char** command){
 	char full_path[MAX_PATH_LENGTH];
 	// Create the full path safely, under the testing directory so that this is all contained.
 	snprintf(full_path, sizeof(full_path), "%s/%s", BASE_DIR, filename);
+
+	//read file first to see if it exists
+	FILE* fp = fopen(full_path, "r");
+	if (fp != NULL) {
+		printf("> ERROR: File already exists.");
+		exit(0);
+	}
+	
 	// Open the file and have saftey check
-	FILE* fp = fopen(full_path, "w");
+	fp = fopen(full_path, "w");
 	if (fp == NULL) {
 		perror("> fopen failed");
 		exit(0);
