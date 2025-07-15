@@ -47,7 +47,7 @@ int main(int argv, const char *argc[]) {
 		// get the tokenized version of the input.  it will be NULL if the param count did not add up, or the command was incorrect.
 		char** words = parse_command(input); 
 		if (words == NULL) {
-			send_msg("ERROR: Unknown command, or incorrect parameter count provided.  Try again.\n\n");
+			send_msg("> ERROR: Unknown command, or incorrect parameter count provided.  Try again.\n\n");
 			send_msg(COMMANDS_STR);
 			continue;
 		}
