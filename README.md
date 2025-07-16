@@ -7,5 +7,5 @@ make
 ./myshell
 ```
 
-> [!note] FYI
+> [!note]
 > the empty `testing_folder` will be where the shell runs, and can add/modify files.
