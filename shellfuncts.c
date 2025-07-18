@@ -120,10 +120,11 @@ char** parse_command(const char* command) {
 			token = strtok(NULL, " ");
 		}
         }
-	//ensure param count is the same
-	if (i != expected_wc) {
-		free(command_copy);
-		return NULL;
+	printf("i : %d, expected : %d, last word: %s", i, expected_wc, words[i-1]);
+	//ensure param count is the same, and if its not the same, make sure only expected + & is allowed 
+	if (i < expected_wc || (i == expected_wc + 1 && ( strcmp(words[i-1], "&") != 0))) {
+			free(command_copy);
+			return NULL;
 	}
 
 	// we do not need this temp copy anymore.
