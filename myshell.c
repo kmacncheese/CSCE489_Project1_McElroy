@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "shellfuncts.h"
 
 int main(int argv, const char *argc[]) {
@@ -41,11 +42,14 @@ int main(int argv, const char *argc[]) {
 
 		// get the user input with fgets, since its more typically secure than alternatives (buffer overflow prevention.)
 		send_msg("\n\n$ ");
+		fflush(stdout);
 		fgets(input, sizeof(input), stdin);
 		input[strcspn(input, "\n")] = 0;
 
 		// get the tokenized version of the input.  it will be NULL if the param count did not add up, or the command was incorrect.
-		char** words = parse_command(input); 
+		int is_amp = 0;
+		
+		char** words = parse_command(input, &is_amp); 
 		if (words == NULL) {
 			send_msg("> ERROR: Unknown command, or incorrect parameter count provided.  Try again.\n\n");
 			send_msg(COMMANDS_STR);
@@ -57,7 +61,13 @@ int main(int argv, const char *argc[]) {
 		}
 		
 		//execute the command with fork
-		exe_with_fork((const char**) words);
+		exe_with_fork((const char**) words, is_amp);
+
+		for (int i = 0; i < get_command_params(words[0]); i++) {
+			free(words[i]);
+		}
+		free(words);
+
 
 	} while (1);
 	send_msg("\n> Terminating shell...\n"); 

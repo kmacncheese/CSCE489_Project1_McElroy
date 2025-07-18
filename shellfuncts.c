@@ -65,25 +65,30 @@ void send_msg(const char *param2) {
  * Returns: the tokenized array of the command.  So "hello world" becomes 'hello'[0] and 'world'[1]
  *************************************************************************************/
 
-char** parse_command(const char* command) {
-        //allocate memory for a copy, check if null just in case it fails
-        char* command_copy = strdup(command);
-        if (!command_copy) return NULL;
+char** parse_command(const char* command, int* amp_or_not) {
+	//allocate memory for a copy, check if null just in case it fails
+	char* command_copy = strdup(command);
+	if (!command_copy) return NULL;
 
-        //initialize the counter and find first token
-        int i = 0;
-        char* token = strtok(command_copy, " ");
+	//initialize the counter and find first token
+	int i = 0;
+	
+	char* token = strtok(command_copy, " ");
+	if (token == NULL){
+		free(command_copy);
+		return NULL;
+	}
 
 	//make sure the parameter count provided is correct, given the command
 	int expected_wc = get_command_params(token);
 	if (expected_wc == 0) return NULL;
 
-        //allocate memory for the return tokenized array, check if null just in case it fails
-        char **words = malloc(expected_wc * sizeof(char*));
-        if (!words) return NULL;
+	//allocate memory for the return tokenized array, check if null just in case it fails
+	char **words = malloc(expected_wc * sizeof(char*));
+	if (!words) return NULL;
 
-        //keep tokenizing untill no more words exist.
-        while (token) {
+	//keep tokenizing untill no more words exist.
+	while (token) {
 		if (token[0] == '"') {
 			// start of a quoted string
 			size_t len = strlen(token);
@@ -119,17 +124,23 @@ char** parse_command(const char* command) {
 			words[i++] = strdup(token);
 			token = strtok(NULL, " ");
 		}
-        }
-	printf("i : %d, expected : %d, last word: %s", i, expected_wc, words[i-1]);
-	//ensure param count is the same, and if its not the same, make sure only expected + & is allowed 
-	if (i < expected_wc || (i == expected_wc + 1 && ( strcmp(words[i-1], "&") != 0))) {
-			free(command_copy);
-			return NULL;
 	}
+	//printf("i : %d, expected : %d, last word: %s", i, expected_wc, words[i-1]);
 
+	//ensure param count is the same, and if its not the same, make sure only expected + & is allowed 
+	if (i == 0 || i < expected_wc || (i == expected_wc + 1 && ( strcmp(words[i-1], "&") != 0))) {
+		free(command_copy);
+		return NULL;
+	} 
+
+	//if amp is there, set the flag
+	if (i == expected_wc + 1 && (strcmp(words[i-1], "&") == 0)) {
+		*amp_or_not = 1;
+	}
+	
 	// we do not need this temp copy anymore.
-        free(command_copy);
-        return words;
+	free(command_copy);
+	return words;
 }
 
 /*************************************************************************************
@@ -138,15 +149,20 @@ char** parse_command(const char* command) {
  *
  * this just serves to clean up the main method.
  *************************************************************************************/
-void exe_with_fork(const char** words){
+void exe_with_fork(const char** words, int is_amp){
 	pid_t pid = fork();	
 
 	if (pid == 0){ //child
 		printf("[+][+][+] Child PID: %d\n\n", getpid());
 		exe_command(words);
+		exit(0);
 	} else if (pid > 0){ //parent
-		printf("[+][+] Parent PID: %d Waiting for [Child PID: %d]\n", getpid(), pid);
-		waitpid(pid, NULL, 0);
+		if (!is_amp) {
+			printf("[+][+] Parent PID: %d Waiting for [Child PID: %d]\n", getpid(), pid);
+			waitpid(pid, NULL, 0);
+		} else {
+			printf("[+][+] Parent PID: %d Running in background\n", getpid());
+		}
 	} else {
 		perror("> Fork failed");
 	}
@@ -212,7 +228,7 @@ void exe_create(const char** command){
 	//read file first to see if it exists
 	FILE* fp = fopen(full_path, "r");
 	if (fp != NULL) {
-		printf("> ERROR: File already exists.");
+		printf("> ERROR: File already exists. \n");
 		exit(0);
 	}
 	
@@ -238,6 +254,11 @@ void exe_update(const char** command){
 	// organize args
 	const char* filename = *(command + 1);
 	const int number = atoi(*(command + 2));
+	if (number == 0){
+		perror("> ERROR: Number was not int, or it was 0");
+		exit(0);
+	}
+
 	const char* text = *(command + 3);
 
 	// open file
@@ -259,7 +280,7 @@ void exe_update(const char** command){
 		fflush(fp);
 		sleep(strlen(text)/5);
 	}
-	printf("> File updated: %s", full_path);
+	printf("> File updated: %s\n", full_path);
 	fclose(fp);
 	
 	exit(0);
@@ -300,5 +321,5 @@ void exe_dir(){
 	execl("/bin/ls", "ls", BASE_DIR, NULL);
 	// If execl returns, an error occurred
 	perror("> execl failed");
-	exit(0);
+	exit(1);
 }
