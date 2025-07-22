@@ -30,7 +30,7 @@ typedef enum{
 	CMD_HALT = 1
 } MaxParams;
 
-const char* BASE_DIR = "./testing_folder";
+const char* BASE_DIR = ".";
 const int MAX_PATH_LENGTH = 100;
 
 int hello(int param1) {
